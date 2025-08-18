@@ -1,0 +1,6 @@
+{
+  "frontendPaths": [
+    "../frontend/src/types/api.ts"
+  ],
+  "sourcePath": "src/types/shared.ts"
+} 
