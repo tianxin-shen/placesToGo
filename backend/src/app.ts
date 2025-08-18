@@ -6,6 +6,8 @@ import swaggerJsdoc from 'swagger-jsdoc';
 import placesRoutes from './routes/places';
 import wantToGoRoutes from './routes/wantToGo';
 import authRouter from './routes/auth';
+import groupsRouter from './routes/groups';
+import groupPlacesRouter from './routes/groupPlaces';
 
 // Load environment variables
 dotenv.config();
@@ -238,6 +240,8 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/places', placesRoutes);
 app.use('/api/want-to-go', wantToGoRoutes);
 app.use('/api/auth', authRouter);
+app.use('/api/groups', groupsRouter);
+app.use('/api/groups', groupPlacesRouter);
 
 // Basic route for testing
 app.get('/', (_req, res) => {
