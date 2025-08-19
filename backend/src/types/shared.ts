@@ -158,4 +158,37 @@ export interface PaginatedResponse<T> {
   total: number;
   page: number;
   totalPages: number;
+}
+
+// Group types
+export interface Group {
+  id: string;
+  name: string;
+  description?: string;
+  shareCode: string;
+  status: 'active' | 'archived';
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface GroupMember {
+  id: string;
+  group_id: string;
+  user_id: string;
+  role: 'owner' | 'editor';
+  status: 'active' | 'left';
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface GroupPlace {
+  id: string;
+  group_id: string;
+  place_id: string;
+  added_by: string;
+  removed_by?: string;
+  status: 'active' | 'removed';
+  notes?: string;
+  created_at: Date;
+  updated_at: Date;
 } 

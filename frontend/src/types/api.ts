@@ -1,6 +1,6 @@
 // This file is auto-generated. Do not edit directly.
 // Generated from backend shared types.
-// Last generated: 2025-06-18T20:42:20.547Z
+// Last generated: 2025-08-18T23:08:38.426Z
 
 // Common types shared between frontend and backend
 
@@ -162,4 +162,37 @@ export interface PaginatedResponse<T> {
   total: number;
   page: number;
   totalPages: number;
+}
+
+// Group types
+export interface Group {
+  id: string;
+  name: string;
+  description?: string;
+  shareCode: string;
+  status: 'active' | 'archived';
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface GroupMember {
+  id: string;
+  group_id: string;
+  user_id: string;
+  role: 'owner' | 'editor';
+  status: 'active' | 'left';
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface GroupPlace {
+  id: string;
+  group_id: string;
+  place_id: string;
+  added_by: string;
+  removed_by?: string;
+  status: 'active' | 'removed';
+  notes?: string;
+  created_at: Date;
+  updated_at: Date;
 } 
