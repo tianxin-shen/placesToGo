@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { authenticateToken } from '../middleware/auth';
+import { authenticate } from '../middleware/auth';
 import Group from '../models/Group';
 import GroupMember from '../models/GroupMember';
 import GroupPlace from '../models/GroupPlace';
@@ -29,7 +29,7 @@ const router = Router();
  *               description:
  *                 type: string
  */
-router.post('/', authenticateToken, async (req: Request, res: Response) => {
+router.post('/', authenticate, async (req: Request, res: Response) => {
   try {
     const { name, description } = req.body;
     const userId = req.user?.id;
@@ -77,7 +77,7 @@ router.post('/', authenticateToken, async (req: Request, res: Response) => {
  *     security:
  *       - bearerAuth: []
  */
-router.get('/', authenticateToken, async (req: Request, res: Response) => {
+router.get('/', authenticate, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
 
@@ -110,7 +110,7 @@ router.get('/', authenticateToken, async (req: Request, res: Response) => {
  *         schema:
  *           type: string
  */
-router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
+router.get('/:id', authenticate, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userId = req.user?.id;
@@ -158,7 +158,7 @@ router.get('/:id', authenticateToken, async (req: Request, res: Response) => {
  *               shareCode:
  *                 type: string
  */
-router.post('/join', authenticateToken, async (req: Request, res: Response) => {
+router.post('/join', authenticate, async (req: Request, res: Response) => {
   try {
     const { shareCode } = req.body;
     const userId = req.user?.id;
@@ -213,7 +213,7 @@ router.post('/join', authenticateToken, async (req: Request, res: Response) => {
  *         schema:
  *           type: string
  */
-router.delete('/:id/leave', authenticateToken, async (req: Request, res: Response) => {
+router.delete('/:id/leave', authenticate, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userId = req.user?.id;

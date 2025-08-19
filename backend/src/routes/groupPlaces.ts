@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { authenticateToken } from '../middleware/auth';
+import { authenticate } from '../middleware/auth';
 import Group from '../models/Group';
 import GroupMember from '../models/GroupMember';
 import GroupPlace from '../models/GroupPlace';
@@ -21,7 +21,7 @@ const router = Router();
  *         schema:
  *           type: string
  */
-router.post('/:groupId/places', authenticateToken, async (req: Request, res: Response) => {
+router.post('/:groupId/places', authenticate, async (req: Request, res: Response) => {
   try {
     const { groupId } = req.params;
     const { place_id, notes } = req.body;
@@ -86,7 +86,7 @@ router.post('/:groupId/places', authenticateToken, async (req: Request, res: Res
  *         schema:
  *           type: string
  */
-router.get('/:groupId/places', authenticateToken, async (req: Request, res: Response) => {
+router.get('/:groupId/places', authenticate, async (req: Request, res: Response) => {
   try {
     const { groupId } = req.params;
     const userId = req.user?.id;
@@ -134,7 +134,7 @@ router.get('/:groupId/places', authenticateToken, async (req: Request, res: Resp
  *         schema:
  *           type: string
  */
-router.delete('/:groupId/places/:placeId', authenticateToken, async (req: Request, res: Response) => {
+router.delete('/:groupId/places/:placeId', authenticate, async (req: Request, res: Response) => {
   try {
     const { groupId, placeId } = req.params;
     const userId = req.user?.id;
