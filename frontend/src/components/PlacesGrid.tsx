@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { FaRegHeart, FaHeart, FaWalking, FaCar, FaBus } from 'react-icons/fa';
+import { FaRegHeart, FaHeart, FaWalking, FaCar, FaBus, FaUsers } from 'react-icons/fa';
 import { getPhotoUrlWithResolution } from '../utils/photoUtils';
 import type { Place, WantToGoPlace} from '../types/api';
 import type { GooglePlaceResponse } from '../types/google';
 import { useQuery } from '@tanstack/react-query';
 import { getPlaceDetailsFromGoogle } from '../api/places';
+import { useGroup } from '../context/GroupContext';
 
 interface PlacesGridProps {
   places: (Place | WantToGoPlace)[];
@@ -23,6 +24,8 @@ const PlacesGrid = ({
   isLoading: parentIsLoading,
   error: parentError
 }: PlacesGridProps) => {
+  const { currentGroup } = useGroup();
+
   // Fetch place details for WantToGoPlace objects that don't have place data
   const placeIds = places
     .filter((place): place is WantToGoPlace => 
@@ -204,9 +207,14 @@ const PlacesGrid = ({
             {variant === 'explore' && onSaveToWantToGo && (
               <button
                 onClick={() => onSaveToWantToGo(placeData.place_id)}
-                className="text-red-500 hover:text-red-600"
+                className="text-red-500 hover:text-red-600 relative group"
+                title={currentGroup ? `Add to ${currentGroup.name}` : "Add to Want to Go"}
               >
-                <FaRegHeart className="w-6 h-6" />
+                {currentGroup ? (
+                  <FaUsers className="w-6 h-6" />
+                ) : (
+                  <FaRegHeart className="w-6 h-6" />
+                )}
               </button>
             )}
             {variant === 'wantToGo' && onRemoveFromWantToGo && (

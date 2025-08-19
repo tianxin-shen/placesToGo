@@ -6,8 +6,9 @@ import { getPlaces } from '../api/places';
 import { getPhotoUrl } from '../utils/photoUtils';
 import type { Place, ApiResponse } from '../types/api';
 import PlacesGrid from '../components/PlacesGrid';
-import { addToWantToGo } from '../api/wantToGo';
+import { savePlaceToList } from '../api/places';
 import { getUserId } from '../utils/userUtils';
+import { useGroup } from '../context/GroupContext';
 
 export default function Explore() {
   const { data: apiResponse, isLoading, error } = useQuery<ApiResponse<Place[]>>({
@@ -18,16 +19,27 @@ export default function Explore() {
     }
   });
 
+  const { currentGroup } = useGroup();
+
   const handleSaveToWantToGo = async (placeId: string) => {
     try {
-      const userId = getUserId();
-      await addToWantToGo({
-        place_id: placeId,
-        user_id: userId,
-        priority: 3
-      });
+      if (currentGroup) {
+        // Save to group list
+        await savePlaceToList({
+          place_id: placeId,
+          group_id: currentGroup.id
+        });
+      } else {
+        // Save to personal list
+        const userId = getUserId();
+        await savePlaceToList({
+          place_id: placeId,
+          user_id: userId,
+          priority: 3
+        });
+      }
     } catch (error) {
-      console.error('Error saving to want to go:', error);
+      console.error('Error saving place:', error);
     }
   };
 

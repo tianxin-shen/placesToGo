@@ -1,14 +1,29 @@
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FaCompass, FaHeart, FaRoute, FaSignOutAlt, FaUser } from 'react-icons/fa';
+import { FaCompass, FaHeart, FaRoute, FaUsers } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
+import { useGroup } from '../context/GroupContext';
+import UserMenu from './UserMenu';
 
 const Navbar = () => {
   const location = useLocation();
   const { isAuthenticated, user, logout, isLoading } = useAuth();
+  const { currentGroup } = useGroup();
 
-  const navItems = [
+  interface NavItem {
+    path: string;
+    label: string;
+    icon: React.ReactNode;
+    className?: string;
+  }
+
+  const navItems: NavItem[] = [
     { path: '/', label: 'Explore', icon: <FaCompass /> },
-    { path: '/want-to-go', label: 'Want to Go', icon: <FaHeart /> },
+    { 
+      path: '/want-to-go', 
+      label: 'Want to Go',
+      icon: <FaHeart />
+    },
     { path: '/trips', label: 'Trips', icon: <FaRoute /> },
   ];
 
@@ -52,7 +67,7 @@ const Navbar = () => {
               location.pathname === item.path
                 ? 'bg-violet-200 text-white'
                 : 'text-gray-300 hover:text-white hover:bg-violet-100'
-            }`}
+            } ${item.className || ''}`}
           >
             {item.icon}
             <span>{item.label}</span>
@@ -62,30 +77,7 @@ const Navbar = () => {
 
       <div className="grow flex justify-end pr-4">
         {isAuthenticated ? (
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              {user?.profilePicture ? (
-                <img
-                  src={user.profilePicture}
-                  alt={user.name}
-                  className="w-8 h-8 rounded-full"
-                />
-              ) : (
-                <FaUser className="w-6 h-6 text-gray-300" />
-              )}
-              <span className="text-sm text-gray-700 hidden sm:block">
-                {user?.name}
-              </span>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="flex items-center space-x-1 text-gray-300 hover:text-white transition-colors duration-200"
-              title="Logout"
-            >
-              <FaSignOutAlt />
-              <span className="hidden sm:block">Logout</span>
-            </button>
-          </div>
+          <UserMenu user={user} onLogout={handleLogout} />
         ) : (
           <Link
             to="/login"

@@ -1,29 +1,38 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { getWantToGoGroups, removeFromWantToGo } from '../api/wantToGo';
+import { getGroupPlaces, removePlaceFromGroup } from '../api/groupPlaces';
 import { getUserId, isAuthenticated } from '../utils/userUtils';
+import { useGroup } from '../context/GroupContext';
 import LocationGroup from '../components/LocationGroup';
 import type { ApiResponse } from '../types/api';
 
 export default function WantToGo() {
   const userId = getUserId();
   const isUserAuthenticated = isAuthenticated();
-
+  const { currentGroup, setCurrentGroup } = useGroup();
   
   const { data: apiResponse, isLoading, error, refetch } = useQuery<ApiResponse<Record<string, any[]>>>({
-    queryKey: ['wantToGoGroups', userId],
-    queryFn: () => getWantToGoGroups({
-      user_id: userId,
-      groupBy: 'location'
-    })
+    queryKey: ['places', currentGroup?.id || userId],
+    queryFn: () => currentGroup 
+      ? getGroupPlaces(currentGroup.id)
+      : getWantToGoGroups({
+          user_id: userId,
+          groupBy: 'location'
+        }),
+    enabled: isUserAuthenticated
   });
 
   const handleRemoveFromWantToGo = async (placeId: string) => {
     try {
-      await removeFromWantToGo(placeId, userId);
-      refetch(); // Refresh the list after removing
+      if (currentGroup) {
+        await removePlaceFromGroup(currentGroup.id, placeId);
+      } else {
+        await removeFromWantToGo(placeId, userId);
+      }
+      refetch();
     } catch (error) {
-      console.error('Error removing from want to go:', error);
+      console.error('Error removing place:', error);
     }
   };
 
@@ -96,13 +105,29 @@ export default function WantToGo() {
       <LoginPrompt />
       
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Want to Go</h1>
-        <p className="text-gray-600">
-          {isUserAuthenticated 
-            ? "Your saved places across all devices"
-            : "Your locally saved places"
-          }
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              {currentGroup ? `${currentGroup.name} - Places` : 'Want to Go'}
+            </h1>
+            <p className="text-gray-600">
+              {currentGroup 
+                ? "Places saved in this group"
+                : isUserAuthenticated 
+                  ? "Your saved places across all devices"
+                  : "Your locally saved places"
+              }
+            </p>
+          </div>
+          {currentGroup && (
+            <button
+              onClick={() => setCurrentGroup(null)}
+              className="text-sm text-violet-600 hover:text-violet-700 font-medium"
+            >
+              Switch to Personal List
+            </button>
+          )}
+        </div>
       </div>
 
       {Object.entries(apiResponse.data).map(([locationName, places]) => {
