@@ -20,11 +20,9 @@ const GroupSchema: Schema = new Schema({
     type: String,
     trim: true
   },
-  shareCode: {
+      shareCode: {
     type: String,
-    required: true,
-    unique: true,
-    index: true
+    required: true
   },
   status: {
     type: String,
