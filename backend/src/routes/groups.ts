@@ -1,11 +1,25 @@
 import { Router, Request, Response } from 'express';
 import { authenticate } from '../middleware/auth';
-import Group from '../models/Group';
+import Group, { IGroup } from '../models/Group';
 import GroupMember from '../models/GroupMember';
 import GroupPlace from '../models/GroupPlace';
 import { generateShareCode } from '../utils/codeGenerator';
+import type { Group as FrontendGroup } from '../types/shared';
 
 const router = Router();
+
+// Helper function to transform MongoDB Group document to frontend format
+const transformGroupToFrontend = (group: IGroup): FrontendGroup => {
+  return {
+    id: (group._id as any).toString(),
+    name: group.name,
+    description: group.description,
+    shareCode: group.shareCode,
+    status: group.status,
+    createdAt: group.createdAt,
+    updatedAt: group.updatedAt
+  };
+};
 
 /**
  * @swagger
@@ -61,7 +75,7 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
       status: 'active'
     });
 
-    res.status(201).json(group);
+    res.status(201).json(transformGroupToFrontend(group));
   } catch (error) {
     console.error('Error creating group:', error);
     res.status(500).json({ message: 'Failed to create group' });
@@ -87,7 +101,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
       status: 'active'
     }).populate('group_id');
 
-    const groups = memberships.map(m => m.group_id);
+    const groups = memberships.map(m => transformGroupToFrontend(m.group_id as any));
     res.json(groups);
   } catch (error) {
     console.error('Error fetching groups:', error);
@@ -131,7 +145,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'Group not found' });
     }
 
-    res.json(group);
+    res.json(transformGroupToFrontend(group));
   } catch (error) {
     console.error('Error fetching group:', error);
     res.status(500).json({ message: 'Failed to fetch group' });
@@ -191,7 +205,7 @@ router.post('/join', authenticate, async (req: Request, res: Response) => {
       });
     }
 
-    res.json({ message: 'Successfully joined group', group });
+    res.json({ message: 'Successfully joined group', group: transformGroupToFrontend(group) });
   } catch (error) {
     console.error('Error joining group:', error);
     res.status(500).json({ message: 'Failed to join group' });

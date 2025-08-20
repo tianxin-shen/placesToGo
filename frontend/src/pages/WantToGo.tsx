@@ -13,14 +13,13 @@ export default function WantToGo() {
   const { currentGroup, setCurrentGroup } = useGroup();
   
   const { data: apiResponse, isLoading, error, refetch } = useQuery<ApiResponse<Record<string, any[]>>>({
-    queryKey: ['places', currentGroup?.id || userId],
+    queryKey: ['places', currentGroup?.id || userId, isUserAuthenticated ? 'auth' : 'anon'],
     queryFn: () => currentGroup 
       ? getGroupPlaces(currentGroup.id)
       : getWantToGoGroups({
           user_id: userId,
           groupBy: 'location'
-        }),
-    enabled: isUserAuthenticated
+        })
   });
 
   const handleRemoveFromWantToGo = async (placeId: string) => {
@@ -77,10 +76,13 @@ export default function WantToGo() {
     return <div className="container mx-auto px-4 py-8">Error loading places</div>;
   }
 
-  if (!apiResponse?.data || Object.keys(apiResponse.data).length === 0) {
+  const hasNoPlaces = !apiResponse?.data || Object.keys(apiResponse.data).length === 0;
+  const showLoginPrompt = !isUserAuthenticated && !hasNoPlaces;
+
+  if (hasNoPlaces) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <LoginPrompt />
+        {!isUserAuthenticated && <LoginPrompt />}
         <div className="text-center py-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">No places in your want to go list</h2>
           <p className="text-gray-600 mb-6">
@@ -102,7 +104,7 @@ export default function WantToGo() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <LoginPrompt />
+      {showLoginPrompt && <LoginPrompt />}
       
       <div className="mb-6">
         <div className="flex items-center justify-between">
