@@ -2,6 +2,57 @@ import { apiRequest, getFetchOptions } from './client';
 import type { Place, ApiResponse, GroupPlace } from '../types/api';
 import type { GooglePlaceResponse } from '../types/google';
 
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+interface GetPlacesParams {
+  limit?: number;
+  page?: number;
+}
+
+// Get places from our database (requires auth)
+export const getPlaces = async (params: GetPlacesParams = {}): Promise<ApiResponse<Place[]>> => {
+  const { limit = 10, page = 1 } = params;
+  return apiRequest<ApiResponse<Place[]>>(
+    `/places?limit=${limit}&page=${page}`,
+    getFetchOptions('GET')
+  );
+};
+
+// Get place suggestions from Google Places API (public endpoint)
+export const getPlaceAutocomplete = async (input: string) => {
+  const response = await fetch(
+    'https://places.googleapis.com/v1/places:autocomplete',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': GOOGLE_MAPS_API_KEY,
+        'X-Goog-FieldMask': 'suggestions.placePrediction.place,suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat,suggestions.placePrediction.types'
+      },
+      body: JSON.stringify({
+        input,
+        locationBias: {
+          circle: {
+            center: {
+              latitude: 37.7749,  // San Francisco coordinates as default
+              longitude: -122.4194
+            },
+            radius: 50000.0  // 50km radius
+          }
+        }
+      })
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    console.error('Google Places Autocomplete API error:', errorData);
+    throw new Error('Failed to fetch place suggestions');
+  }
+
+  return response.json();
+};
+
 interface SavePlaceParams {
   place_id: string;
   notes?: string;
@@ -13,6 +64,31 @@ interface SavePlaceParams {
   group_id?: string;
 }
 
+// Get detailed place information from Google Places API (public endpoint)
+export const getPlaceDetailsFromGoogle = async (placeId: string): Promise<ApiResponse<GooglePlaceResponse>> => {
+  const response = await fetch(
+    `https://places.googleapis.com/v1/places/${placeId}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': GOOGLE_MAPS_API_KEY,
+        'X-Goog-FieldMask': 'id,displayName,formattedAddress,rating,userRatingCount,priceLevel,regularOpeningHours,photos'
+      }
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    console.error('Google Places API error:', errorData);
+    throw new Error('Failed to fetch place details from Google Places API');
+  }
+
+  const data = await response.json();
+  return { data };
+};
+
+// Save place to personal or group list (requires auth)
 export const savePlaceToList = async (params: SavePlaceParams): Promise<ApiResponse<Place | GroupPlace>> => {
   if (params.group_id) {
     // Save to group list
