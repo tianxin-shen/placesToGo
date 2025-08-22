@@ -187,8 +187,17 @@ export interface GroupPlace {
   place_id: string;
   added_by: string;
   removed_by?: string;
-  status: 'active' | 'removed';
+  
+  // Enhanced fields similar to WantToGo
+  location_group?: string;
+  type_group?: string;
+  year_group?: number;
   notes?: string;
+  priority?: number;
+  status: 'pending' | 'visited' | 'cancelled' | 'removed';
+  plannedVisitDate?: Date;
+  
+  // Timestamps
   created_at: Date;
   updated_at: Date;
 } 

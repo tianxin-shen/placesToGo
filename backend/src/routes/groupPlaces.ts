@@ -24,7 +24,15 @@ const router = Router();
 router.post('/:groupId/places', authenticate, async (req: Request, res: Response) => {
   try {
     const { groupId } = req.params;
-    const { place_id, notes } = req.body;
+    const { 
+      place_id, 
+      notes, 
+      location_group, 
+      type_group, 
+      year_group = new Date().getFullYear(),
+      priority = 3,
+      plannedVisitDate 
+    } = req.body;
     const userId = req.user?.id;
 
     // Check membership
@@ -45,12 +53,18 @@ router.post('/:groupId/places', authenticate, async (req: Request, res: Response
     });
 
     if (existingPlace) {
-      if (existingPlace.status === 'active') {
+      if (existingPlace.status !== 'removed') {
         return res.status(400).json({ message: 'Place already in group' });
       }
-      // Reactivate if previously removed
-      existingPlace.status = 'active';
+      // Reactivate if previously removed and update fields
+      existingPlace.status = 'pending';
       existingPlace.removed_by = undefined;
+      if (notes) existingPlace.notes = notes;
+      if (location_group) existingPlace.location_group = location_group;
+      if (type_group) existingPlace.type_group = type_group;
+      if (year_group) existingPlace.year_group = year_group;
+      if (priority) existingPlace.priority = priority;
+      if (plannedVisitDate) existingPlace.plannedVisitDate = plannedVisitDate;
       await existingPlace.save();
       return res.json(existingPlace);
     }
@@ -61,7 +75,12 @@ router.post('/:groupId/places', authenticate, async (req: Request, res: Response
       place_id,
       added_by: userId,
       notes,
-      status: 'active'
+      location_group,
+      type_group,
+      year_group,
+      priority,
+      plannedVisitDate,
+      status: 'pending'
     });
 
     res.status(201).json(groupPlace);
@@ -75,7 +94,7 @@ router.post('/:groupId/places', authenticate, async (req: Request, res: Response
  * @swagger
  * /api/groups/{groupId}/places:
  *   get:
- *     summary: Get group places
+ *     summary: Get group places grouped by category
  *     tags: [Group Places]
  *     security:
  *       - bearerAuth: []
@@ -85,10 +104,18 @@ router.post('/:groupId/places', authenticate, async (req: Request, res: Response
  *         required: true
  *         schema:
  *           type: string
+ *       - in: query
+ *         name: groupBy
+ *         schema:
+ *           type: string
+ *           enum: [location, type, year]
+ *           default: location
+ *         description: Group by category
  */
 router.get('/:groupId/places', authenticate, async (req: Request, res: Response) => {
   try {
     const { groupId } = req.params;
+    const { groupBy = 'location' } = req.query;
     const userId = req.user?.id;
 
     // Check membership
@@ -102,12 +129,37 @@ router.get('/:groupId/places', authenticate, async (req: Request, res: Response)
       return res.status(403).json({ message: 'Not a member of this group' });
     }
 
-    const places = await GroupPlace.find({
+    // Get active group places (not removed)
+    const groupPlaces = await GroupPlace.find({
       group_id: groupId,
-      status: 'active'
-    }).sort({ createdAt: -1 });
+      status: { $ne: 'removed' }
+    }).sort({ created_at: -1 });
 
-    res.json(places);
+    // Group the places similar to WantToGo route
+    const grouped = groupPlaces.reduce((acc: any, item: any) => {
+      let key: string;
+      switch (groupBy) {
+        case 'location':
+          key = item.location_group || 'Uncategorized';
+          break;
+        case 'type':
+          key = item.type_group || 'Uncategorized';
+          break;
+        case 'year':
+          key = item.year_group?.toString() || 'Uncategorized';
+          break;
+        default:
+          key = 'Uncategorized';
+      }
+
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(item);
+      return acc;
+    }, {});
+
+    res.json(grouped);
   } catch (error) {
     console.error('Error fetching group places:', error);
     res.status(500).json({ message: 'Failed to fetch group places' });
@@ -153,7 +205,7 @@ router.delete('/:groupId/places/:placeId', authenticate, async (req: Request, re
     const groupPlace = await GroupPlace.findOne({
       group_id: groupId,
       place_id: placeId,
-      status: 'active'
+      status: { $ne: 'removed' }
     });
 
     if (!groupPlace) {

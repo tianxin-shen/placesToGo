@@ -5,8 +5,17 @@ export interface IGroupPlace extends Document {
   place_id: string;
   added_by: mongoose.Types.ObjectId;
   removed_by?: mongoose.Types.ObjectId;
-  status: 'active' | 'removed';
+  
+  // Enhanced fields similar to WantToGo
+  location_group?: string;  // e.g., "Hawaii", "Portland", "Nearby"
+  type_group?: string;      // e.g., "activity", "restaurant", "attraction"
+  year_group?: number;      // e.g., 2024, 2025
   notes?: string;
+  priority?: number;        // Priority level 1-5
+  status: 'pending' | 'visited' | 'cancelled' | 'removed';
+  plannedVisitDate?: Date;
+  
+  // Timestamps
   created_at: Date;
   updated_at: Date;
 }
@@ -26,17 +35,40 @@ const groupPlaceSchema = new Schema({
     ref: 'User',
     required: true
   },
-  status: {
+  removed_by: {
+    type: Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  
+  // Enhanced fields similar to WantToGo
+  location_group: {
     type: String,
-    enum: ['active', 'removed'],
-    default: 'active'
+    index: true
+  },
+  type_group: {
+    type: String,
+    index: true
+  },
+  year_group: {
+    type: Number,
+    index: true
   },
   notes: {
     type: String
   },
-  removed_by: {
-    type: Schema.Types.ObjectId,
-    ref: 'User'
+  priority: {
+    type: Number,
+    min: 1,
+    max: 5
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'visited', 'cancelled', 'removed'],
+    default: 'pending',
+    index: true
+  },
+  plannedVisitDate: {
+    type: Date
   }
 }, {
   timestamps: {
