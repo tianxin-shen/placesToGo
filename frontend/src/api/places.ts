@@ -62,6 +62,9 @@ interface SavePlaceParams {
   location_group?: string;
   // For group list
   group_id?: string;
+  type_group?: string;
+  year_group?: number;
+  plannedVisitDate?: Date;
 }
 
 // Get detailed place information from Google Places API (public endpoint)
@@ -96,7 +99,12 @@ export const savePlaceToList = async (params: SavePlaceParams): Promise<ApiRespo
       `/groups/${params.group_id}/places`,
       getFetchOptions('POST', {
         place_id: params.place_id,
-        notes: params.notes
+        notes: params.notes,
+        location_group: params.location_group,
+        type_group: params.type_group,
+        year_group: params.year_group,
+        priority: params.priority,
+        plannedVisitDate: params.plannedVisitDate
       })
     );
   } else if (params.user_id) {

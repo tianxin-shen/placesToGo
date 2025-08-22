@@ -1,6 +1,6 @@
 // This file is auto-generated. Do not edit directly.
 // Generated from backend shared types.
-// Last generated: 2025-08-18T23:08:38.426Z
+// Last generated: 2025-08-20T05:16:14.421Z
 
 // Common types shared between frontend and backend
 
@@ -191,8 +191,17 @@ export interface GroupPlace {
   place_id: string;
   added_by: string;
   removed_by?: string;
-  status: 'active' | 'removed';
+  
+  // Enhanced fields similar to WantToGo
+  location_group?: string;
+  type_group?: string;
+  year_group?: number;
   notes?: string;
+  priority?: number;
+  status: 'pending' | 'visited' | 'cancelled' | 'removed';
+  plannedVisitDate?: Date;
+  
+  // Timestamps
   created_at: Date;
   updated_at: Date;
 } 
