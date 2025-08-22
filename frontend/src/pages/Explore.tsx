@@ -27,7 +27,10 @@ export default function Explore() {
         // Save to group list
         await savePlaceToList({
           place_id: placeId,
-          group_id: currentGroup.id
+          group_id: currentGroup.id,
+          type_group: 'tourist_attraction',
+          year_group: new Date().getFullYear(),
+          priority: 3
         });
       } else {
         // Save to personal list

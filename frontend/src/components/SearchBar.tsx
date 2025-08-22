@@ -2,14 +2,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { Loader } from '@googlemaps/js-api-loader';
 import { getUserId } from '../utils/userUtils';
-import type { PlacePreview, Photo, WantToGoPlace } from '../types/api';
-import { addToWantToGo } from '../api/wantToGo';
-import { getPhotoUrl, getPhotoUrlWithResolution } from '../utils/photoUtils';
-import { getPlaceAutocomplete, getPlaceDetailsFromGoogle } from '../api/places';
+import type { PlacePreview } from '../types/api';
+import { getPhotoUrlWithResolution } from '../utils/photoUtils';
+import { getPlaceAutocomplete, getPlaceDetailsFromGoogle, savePlaceToList } from '../api/places';
 import { useDebounce } from '../hooks/useDebounce';
-import { FaPlus, FaTimes, FaSearch } from 'react-icons/fa';
+import { useGroup } from '../context/GroupContext';
+import { FaTimes } from 'react-icons/fa';
 import { transformGooglePlaceToPreview } from '../utils/placeTransform';
-import { useNavigate } from 'react-router-dom';
 
 // Initialize Google Maps loader
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -310,6 +309,7 @@ export default function SearchBar({ onSearch, placeholder }: SearchBarProps) {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const { currentGroup } = useGroup();
   const [suggestions, setSuggestions] = useState<Array<{
     placeId: string;
     mainText: string;
@@ -342,8 +342,8 @@ export default function SearchBar({ onSearch, placeholder }: SearchBarProps) {
       try {
         const response = await getPlaceAutocomplete(debouncedSearchInput);
         const newSuggestions = response.suggestions
-          .filter(s => s.placePrediction)
-          .map(s => ({
+          .filter((s: any) => s.placePrediction)
+          .map((s: any) => ({
             placeId: s.placePrediction!.placeId,
             mainText: s.placePrediction!.structuredFormat.mainText.text,
             secondaryText: s.placePrediction!.structuredFormat.secondaryText.text
@@ -441,15 +441,26 @@ export default function SearchBar({ onSearch, placeholder }: SearchBarProps) {
 
     setIsSaving(true);
     try {
-      const userId = getUserId();
-      await addToWantToGo({
-        place_id: previewData.placeId!, // Use the Google Places ID
-        user_id: userId,
-        location_group: previewData.location.city,
-        type_group: previewData.types?.[0] || 'tourist_attraction',
-        notes: previewData.description,
-        priority: 3
-      });
+      if (currentGroup) {
+        // Save to group list
+        await savePlaceToList({
+          place_id: previewData.placeId!,
+          group_id: currentGroup.id,
+          location_group: previewData.location.city,
+          type_group: previewData.types?.[0] || 'tourist_attraction',
+          year_group: new Date().getFullYear(),
+          priority: 3
+        });
+      } else {
+        // Save to personal list
+        const userId = getUserId();
+        await savePlaceToList({
+          place_id: previewData.placeId!,
+          user_id: userId,
+          location_group: previewData.location.city,
+          priority: 3
+        });
+      }
       setShowPreview(false);
       setSearchInput('');
     } catch (error) {
@@ -605,7 +616,7 @@ export default function SearchBar({ onSearch, placeholder }: SearchBarProps) {
                   disabled={isSaving}
                   className="flex-1 px-4 py-2 bg-primary rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
                 >
-                  {isSaving ? 'Adding...' : 'Add to Want to Go'}
+                  {isSaving ? 'Adding...' : currentGroup ? `Add to ${currentGroup.name}` : 'Add to Want to Go'}
                 </button>
                 <button
                   onClick={handleDiscard}
