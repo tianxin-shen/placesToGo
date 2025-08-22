@@ -32,6 +32,9 @@ export const initializeGoogleSignIn = (onLogin: LoginCallback, onError: ErrorCal
 // Handle the credential response from Google
 const handleCredentialResponse = async (response: GoogleCredentialResponse) => {
   try {
+    // DEBUG: Log the Google ID token
+    // console.log('Google ID Token:', response.credential);
+
     // Send the ID token to our backend
     const loginResponse = await googleLogin(response.credential);
     
