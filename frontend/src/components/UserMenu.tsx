@@ -13,7 +13,7 @@ interface UserMenuProps {
 
 const UserMenu = ({ user, onLogout }: UserMenuProps) => {
   const { isLoading } = useAuth();
-  const { currentGroup, setCurrentGroup } = useGroup();
+  const { currentGroup, recentGroups, setCurrentGroup } = useGroup();
   
   if (isLoading) {
     return null;
@@ -50,18 +50,25 @@ const UserMenu = ({ user, onLogout }: UserMenuProps) => {
 
       <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
         <div className="py-1">
-          {/* Last Active Group */}
+          {/* Switch between Personal and Group */}
           <Menu.Item>
             {({ active }) => (
-              <Link
-                to={currentGroup ? `/groups/${currentGroup.id}` : '/groups'}
+              <button
+                onClick={() => {
+                  if (currentGroup) {
+                    setCurrentGroup(null);
+                  } else if (recentGroups.length > 0) {
+                    setCurrentGroup(recentGroups[0]);
+                  }
+                }}
                 className={`${
                   active ? 'bg-violet-50 text-gray-900' : 'text-gray-700'
-                } flex items-center px-4 py-2 text-sm w-full ${!currentGroup && 'opacity-50'}`}
+                } flex items-center px-4 py-2 text-sm w-full ${!currentGroup && recentGroups.length === 0 && 'opacity-50'}`}
+                disabled={!currentGroup && recentGroups.length === 0}
               >
-                <FaUsers className="mr-3 h-4 w-4" />
-                {currentGroup ? currentGroup.name : 'No Active Group'}
-              </Link>
+                <FaUser className="mr-3 h-4 w-4" />
+                {currentGroup ? user?.name || 'Personal List' : recentGroups.length > 0 ? recentGroups[0].name : 'No Active Group'}
+              </button>
             )}
           </Menu.Item>
 
