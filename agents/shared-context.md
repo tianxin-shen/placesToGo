@@ -55,25 +55,25 @@ Target: Trip model + creation flow wired end-to-end (no AI yet)
 - [x] Add place to wishlist
 - [x] Remove place from wishlist
 - [x] Wishlist grouped by location
-- [ ] Notes editing UI on saved place
-- [ ] Priority editing UI on saved place
+- [x] Notes editing UI on saved place
+- [x] Priority editing UI on saved place
 - [ ] Wishlist sortable by priority
 
 ### Trip Model — Backend
-- [ ] `Trip` Mongoose schema (destination, dates, travelerCount, preferences, status, itinerary, shareToken)
-- [ ] `POST /api/trips` — create trip
-- [ ] `GET /api/trips` — list user's trips
-- [ ] `GET /api/trips/:id` — get trip detail
-- [ ] `PUT /api/trips/:id` — update trip
-- [ ] `DELETE /api/trips/:id` — delete trip
-- [ ] User → Trip association (userId on Trip)
+- [x] `Trip` Mongoose schema (destination, dates, travelerCount, preferences, status, itinerary, shareToken)
+- [x] `POST /api/trips` — create trip
+- [x] `GET /api/trips` — list user's trips
+- [x] `GET /api/trips/:id` — get trip detail
+- [x] `PUT /api/trips/:id` — update trip
+- [x] `DELETE /api/trips/:id` — delete trip
+- [x] User → Trip association (userId on Trip)
 
 ### Trip Creation Flow — Frontend
-- [ ] Step 1 page: destination input + date range picker + traveler count
-- [ ] Step 2 page: multi-select places from wishlist (filtered to matching destination)
-- [ ] Step 3 page: pace preference (relaxed/moderate/packed) + focus (outdoor/food/culture/mix)
-- [ ] Confirmation screen before AI generation
-- [ ] Route: `/trips/new` (multi-step)
+- [x] Step 1 page: destination input + date range picker + traveler count
+- [x] Step 2 page: multi-select places from wishlist (filtered to matching destination)
+- [x] Step 3 page: pace preference (relaxed/moderate/packed) + focus (outdoor/food/culture/mix)
+- [x] Confirmation screen before AI generation
+- [x] Route: `/trips/new` (multi-step)
 
 ### AI Generation — Backend
 - [ ] `POST /api/trips/:id/generate` route
@@ -153,9 +153,9 @@ Target: Trip model + creation flow wired end-to-end (no AI yet)
 
 ## Completed Features
 
-*(SDE marks items here when merged and deployed)*
-
-*(nothing yet)*
+- **2026-06-07** — Trip Mongoose model + full CRUD routes (`/api/trips`) — branch `m1/trip-backend`
+- **2026-06-07** — Wishlist notes + priority editing modal — branch `m1/wishlist-notes-priority`
+- **2026-06-07** — 3-step trip creation flow at `/trips/new` + Trips list page rewrite — branch `m1/trip-creation-frontend`
 
 ---
 
@@ -165,3 +165,4 @@ Target: Trip model + creation flow wired end-to-end (no AI yet)
 |---|---|---|
 | 2026-06-07 | Project spec finalized, agent system initialized | PM |
 | 2026-06-07 | Milestone 1 kicked off, M1 SDE tickets written | PM |
+| 2026-06-07 | M1 Trip backend, wishlist edit UI, trip creation frontend implemented | SDE |
