@@ -6,6 +6,7 @@ import swaggerJsdoc from 'swagger-jsdoc';
 import placesRoutes from './routes/places';
 import wantToGoRoutes from './routes/wantToGo';
 import authRouter from './routes/auth';
+import tripsRouter from './routes/trips';
 
 // Load environment variables
 dotenv.config();
@@ -15,7 +16,7 @@ const app: Express = express();
 // CORS configuration
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
   optionsSuccessStatus: 200
@@ -238,6 +239,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/places', placesRoutes);
 app.use('/api/want-to-go', wantToGoRoutes);
 app.use('/api/auth', authRouter);
+app.use('/api/trips', tripsRouter);
 
 // Basic route for testing
 app.get('/', (_req, res) => {
