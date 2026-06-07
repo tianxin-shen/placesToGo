@@ -150,6 +150,48 @@ export interface AuthError {
   details?: any;
 }
 
+// Trip types
+export interface ItineraryItem {
+  placeId: string;
+  placeName: string;
+  day: number;
+  startTime?: string;
+  endTime?: string;
+  notes?: string;
+  reason?: string;
+}
+
+export interface Trip {
+  _id: string;
+  userId: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  travelerCount: number;
+  preferences: {
+    pace: 'relaxed' | 'moderate' | 'packed';
+    focus: ('outdoor' | 'food' | 'culture' | 'mix')[];
+  };
+  keyPlaceIds: string[];
+  status: 'draft' | 'published';
+  itinerary: ItineraryItem[];
+  shareToken?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateTripPayload {
+  destination: string;
+  startDate: string;
+  endDate: string;
+  travelerCount: number;
+  preferences: {
+    pace: 'relaxed' | 'moderate' | 'packed';
+    focus: ('outdoor' | 'food' | 'culture' | 'mix')[];
+  };
+  keyPlaceIds: string[];
+}
+
 // API Response types
 export interface ApiResponse<T> {
   data: T;

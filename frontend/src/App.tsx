@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import Explore from './pages/Explore';
 import WantToGo from './pages/WantToGo';
 import Trips from './pages/Trips';
+import NewTrip from './pages/NewTrip';
 import Login from './components/Login/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
@@ -21,13 +22,21 @@ function App() {
               <Routes>
                 <Route path="/" element={<Explore />} />
                 <Route path="/want-to-go" element={<WantToGo />} />
-                <Route 
-                  path="/trips" 
+                <Route
+                  path="/trips"
                   element={
                     <ProtectedRoute>
                       <Trips />
                     </ProtectedRoute>
-                  } 
+                  }
+                />
+                <Route
+                  path="/trips/new"
+                  element={
+                    <ProtectedRoute>
+                      <NewTrip />
+                    </ProtectedRoute>
+                  }
                 />
                 <Route 
                   path="/login" 
