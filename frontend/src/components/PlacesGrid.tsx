@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
-import { FaRegHeart, FaHeart, FaWalking, FaCar, FaBus } from 'react-icons/fa';
+import { useState } from 'react';
+import { FaRegHeart, FaHeart, FaWalking, FaCar, FaBus, FaPen } from 'react-icons/fa';
 import { getPhotoUrlWithResolution } from '../utils/photoUtils';
 import type { Place, WantToGoPlace} from '../types/api';
 import type { GooglePlaceResponse } from '../types/google';
 import { useQuery } from '@tanstack/react-query';
 import { getPlaceDetailsFromGoogle } from '../api/places';
+import EditWantToGoModal from './EditWantToGoModal';
 
 interface PlacesGridProps {
   places: (Place | WantToGoPlace)[];
@@ -23,6 +24,7 @@ const PlacesGrid = ({
   isLoading: parentIsLoading,
   error: parentError
 }: PlacesGridProps) => {
+  const [editingPlace, setEditingPlace] = useState<{ placeId: string; name: string; notes?: string; priority?: number } | null>(null);
   // Fetch place details for WantToGoPlace objects that don't have place data
   const placeIds = places
     .filter((place): place is WantToGoPlace => 
@@ -173,7 +175,7 @@ const PlacesGrid = ({
           <p className="text-gray-700 mb-4">{placeData.description}</p>
           
           {/* Additional information based on variant */}
-          {variant === 'wantToGo' && (
+          {variant === 'wantToGo' && isWantToGoPlace && (
             <>
               {renderOpeningHours(placeData.opening_hours)}
               <div className="mt-2">
@@ -182,6 +184,23 @@ const PlacesGrid = ({
               <div className="mt-2">
                 {renderTransportationIcons(placeData)}
               </div>
+              {(place as WantToGoPlace).priority && (
+                <div className="flex mt-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <span
+                      key={star}
+                      className={`text-lg ${star <= ((place as WantToGoPlace).priority ?? 0) ? 'text-yellow-400' : 'text-gray-200'}`}
+                    >
+                      ★
+                    </span>
+                  ))}
+                </div>
+              )}
+              {(place as WantToGoPlace).notes && (
+                <p className="mt-2 text-sm text-gray-500 italic line-clamp-2">
+                  {(place as WantToGoPlace).notes}
+                </p>
+              )}
             </>
           )}
 
@@ -209,13 +228,31 @@ const PlacesGrid = ({
                 <FaRegHeart className="w-6 h-6" />
               </button>
             )}
-            {variant === 'wantToGo' && onRemoveFromWantToGo && (
-              <button
-                onClick={() => onRemoveFromWantToGo(placeData.place_id)}
-                className="text-red-500 hover:text-red-600"
-              >
-                <FaHeart className="w-6 h-6" />
-              </button>
+            {variant === 'wantToGo' && isWantToGoPlace && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() =>
+                    setEditingPlace({
+                      placeId: placeData.place_id,
+                      name: placeData.name,
+                      notes: (place as WantToGoPlace).notes,
+                      priority: (place as WantToGoPlace).priority,
+                    })
+                  }
+                  className="text-gray-400 hover:text-violet-600"
+                  title="Edit notes & priority"
+                >
+                  <FaPen className="w-4 h-4" />
+                </button>
+                {onRemoveFromWantToGo && (
+                  <button
+                    onClick={() => onRemoveFromWantToGo(placeData.place_id)}
+                    className="text-red-500 hover:text-red-600"
+                  >
+                    <FaHeart className="w-6 h-6" />
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -224,9 +261,20 @@ const PlacesGrid = ({
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {places.map(renderPlaceCard)}
-    </div>
+    <>
+      {editingPlace && (
+        <EditWantToGoModal
+          placeId={editingPlace.placeId}
+          placeName={editingPlace.name}
+          initialNotes={editingPlace.notes}
+          initialPriority={editingPlace.priority}
+          onClose={() => setEditingPlace(null)}
+        />
+      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {places.map(renderPlaceCard)}
+      </div>
+    </>
   );
 };
 
