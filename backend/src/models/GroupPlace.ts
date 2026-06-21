@@ -1,10 +1,10 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IGroupPlace extends Document {
-  group_id: mongoose.Types.ObjectId;
+  group_id: string;
   place_id: string;
-  added_by: mongoose.Types.ObjectId;
-  removed_by?: mongoose.Types.ObjectId;
+  added_by: string;
+  removed_by?: string;
   
   // Enhanced fields similar to WantToGo
   location_group?: string;  // e.g., "Hawaii", "Portland", "Nearby"
@@ -79,6 +79,57 @@ const groupPlaceSchema = new Schema({
 
 // Create compound index for unique places per group
 groupPlaceSchema.index({ group_id: 1, place_id: 1 }, { unique: true });
+
+// Validation middleware to ensure business rules
+groupPlaceSchema.pre('save', async function(this: IGroupPlace, next) {
+  try {
+    // Ensure group exists and is active
+    const Group = mongoose.model('Group');
+    const group = await Group.findById(this.group_id);
+    if (!group) {
+      return next(new Error('Group does not exist'));
+    }
+    if (group.status !== 'active') {
+      return next(new Error('Cannot add places to inactive or archived group'));
+    }
+
+    // Ensure place exists in database
+    const Place = mongoose.model('Place');
+    const place = await Place.findOne({ place_id: this.place_id });
+    if (!place) {
+      return next(new Error('Place does not exist in database'));
+    }
+
+    // Ensure user (added_by) exists and is active member of group
+    const GroupMember = mongoose.model('GroupMember');
+    const membership = await GroupMember.findOne({
+      group_id: this.group_id,
+      user_id: this.added_by,
+      status: 'active'
+    });
+
+    if (!membership) {
+      return next(new Error('User is not an active member of this group'));
+    }
+
+    // If being removed, ensure removed_by is set and is a group member
+    if (this.status === 'removed' && this.removed_by) {
+      const removerMembership = await GroupMember.findOne({
+        group_id: this.group_id,
+        user_id: this.removed_by,
+        status: 'active'
+      });
+
+      if (!removerMembership) {
+        return next(new Error('User removing place is not an active member of this group'));
+      }
+    }
+
+    next();
+  } catch (error) {
+    next(error as Error);
+  }
+});
 
 const GroupPlace = mongoose.model<IGroupPlace>('GroupPlace', groupPlaceSchema);
 

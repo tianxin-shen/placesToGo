@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface ISession extends Document {
-  userId: string;
+  userId: string; // Will be converted to ObjectId by Mongoose
   token: string;
   refreshToken: string;
   

@@ -200,4 +200,244 @@ export interface GroupPlace {
   // Timestamps
   created_at: Date;
   updated_at: Date;
+}
+
+// Trip-related types
+export interface Trip {
+  id: string;
+  title: string;
+  description?: string;
+
+  // Relationships
+  creator: string; // User ID
+  group?: string;  // Group ID (optional for group trips)
+
+  // Trip configuration - multiple destinations
+  destinations: Array<{
+    name: string;
+    location: Location;
+    order: number;
+  }>;
+
+  durationDays: number;
+  preferences: {
+    pace: 'relaxed' | 'moderate' | 'intense';
+    interests: string[];
+    budget: 'budget' | 'moderate' | 'luxury';
+    transport: 'walking' | 'public' | 'driving' | 'mixed';
+  };
+
+  // Status and metadata
+  status: 'planning' | 'confirmed' | 'active' | 'completed' | 'cancelled';
+  isPublic: boolean;
+  tags: string[];
+
+  // Collaboration
+  editors: string[]; // User IDs who can edit
+
+  // Statistics
+  totalPlaces: number;
+  estimatedDuration: number;
+  estimatedCost?: number;
+
+  // Source data - references to saved places
+  sourcePlaces: Array<{
+    placeId: string; // Place document ID
+    savedPlaceId: string; // WantToGo or GroupPlace document ID
+    savedPlaceType: 'personal' | 'group';
+  }>;
+
+  // Timestamps
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface TripDay {
+  id: string;
+  trip: string; // Trip ID
+  dayNumber: number;
+
+  // Configuration
+  date?: Date;
+  title?: string;
+  description?: string;
+
+  // Schedule
+  startTime?: string;
+  endTime?: string;
+
+  // Statistics
+  totalPlaces: number;
+  estimatedDuration: number;
+  estimatedCost?: number;
+
+  // Preferences
+  focus?: string;
+  pace?: 'relaxed' | 'moderate' | 'intense';
+
+  // Status
+  isRestDay: boolean;
+  isTravelDay: boolean;
+
+  // Location
+  location?: {
+    name: string;
+    lat: number;
+    lng: number;
+  };
+
+  // Timestamps
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface TripPlace {
+  id: string;
+  trip: string;      // Trip ID
+  tripDay: string;   // TripDay ID
+  place: string;     // Place ID
+
+  // Scheduling
+  order: number;
+  startTime?: string;
+  endTime?: string;
+  estimatedDuration: number;
+
+  // Visit details
+  notes?: string;
+  priority: 'low' | 'medium' | 'high';
+  status: 'planned' | 'visited' | 'skipped' | 'cancelled';
+
+  // Cost and logistics
+  estimatedCost?: number;
+
+  // Navigation to next place
+  nextPlaceNavigation?: {
+    mode: 'walking' | 'public' | 'taxi' | 'driving' | 'other';
+    duration: number;
+    distance?: number;
+    instructions?: string;
+    notes?: string;
+  };
+
+  // Place snapshot
+  placeSnapshot: {
+    place_id: string;
+    name: string;
+    formatted_address: string;
+    location: Location;
+    rating?: number;
+    types: string[];
+    price_level?: number;
+  };
+
+  // Customizations
+  customName?: string;
+  customNotes?: string;
+
+  // Timestamps
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface TripPreferences {
+  id: string;
+  user: string; // User ID
+
+  // Default preferences
+  defaultPreferences: {
+    pace: 'relaxed' | 'moderate' | 'intense';
+    interests: string[];
+    budget: 'budget' | 'moderate' | 'luxury';
+    transport: 'walking' | 'public' | 'driving' | 'mixed';
+  };
+
+  // Scheduling preferences
+  scheduling: {
+    preferredStartTime: string;
+    preferredEndTime: string;
+    maxActivitiesPerDay: number;
+    includeBreaks: boolean;
+    breakDuration: number;
+  };
+
+  // Activity preferences
+  activities: {
+    maxTravelTime: number;
+    prioritizeRating: boolean;
+    avoidCrowds: boolean;
+    dietaryRestrictions: string[];
+  };
+
+  // Notification preferences
+  notifications: {
+    reminderBeforeActivity: number;
+    weatherAlerts: boolean;
+    trafficAlerts: boolean;
+  };
+
+  // Advanced preferences
+  advanced: {
+    optimizationWeight: {
+      rating: number;
+      distance: number;
+      popularity: number;
+      cost: number;
+    };
+    customRules: string[];
+  };
+
+  // Timestamps
+  created_at: Date;
+  updated_at: Date;
+}
+
+// Trip activity types
+export type TripActivityType =
+  | 'trip_created' | 'trip_updated' | 'trip_deleted' | 'trip_status_changed' | 'trip_preferences_updated'
+  | 'day_added' | 'day_updated' | 'day_deleted' | 'day_reordered'
+  | 'place_added' | 'place_updated' | 'place_removed' | 'place_reordered' | 'place_status_changed'
+  | 'editor_added' | 'editor_removed'
+  | 'comment_added' | 'comment_updated' | 'comment_deleted';
+
+export interface TripActivity {
+  id: string;
+  trip: string; // Trip ID
+  user: string; // User ID
+  type: TripActivityType;
+  description: string;
+  affectedDay?: string; // TripDay ID
+  affectedPlace?: string; // TripPlace ID
+  changes?: {
+    field?: string;
+    oldValue?: any;
+    newValue?: any;
+    additionalData?: Record<string, any>;
+  };
+  timestamp: Date;
+  ipAddress?: string;
+  userAgent?: string;
+}
+
+// Trip generation types
+export interface TripGenerationRequest {
+  destinations: Array<{
+    name: string;
+    location: Location;
+    order: number;
+  }>;
+  durationDays: number;
+  sourcePlaces: Array<{
+    savedPlaceId: string; // WantToGo or GroupPlace ID
+    savedPlaceType: 'personal' | 'group';
+  }>;
+  preferences?: Partial<TripPreferences['defaultPreferences']>;
+  groupId?: string; // Optional: generate for group
+}
+
+export interface TripGenerationResponse {
+  trip: Trip;
+  days: TripDay[];
+  places: TripPlace[];
+  optimizationNotes?: string[];
 } 
